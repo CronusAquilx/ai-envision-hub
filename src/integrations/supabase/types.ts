@@ -14,7 +14,324 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      agent_events: {
+        Row: {
+          chat_id: string | null
+          created_at: string
+          detail: Json
+          id: string
+          kind: string
+          label: string
+          project_id: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          chat_id?: string | null
+          created_at?: string
+          detail?: Json
+          id?: string
+          kind?: string
+          label: string
+          project_id?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          chat_id?: string | null
+          created_at?: string
+          detail?: Json
+          id?: string
+          kind?: string
+          label?: string
+          project_id?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_events_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_events_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chats: {
+        Row: {
+          agent_mode: string
+          created_at: string
+          id: string
+          is_archived: boolean
+          is_favorite: boolean
+          mode: string
+          model: string
+          project_id: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_mode?: string
+          created_at?: string
+          id?: string
+          is_archived?: boolean
+          is_favorite?: boolean
+          mode?: string
+          model?: string
+          project_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_mode?: string
+          created_at?: string
+          id?: string
+          is_archived?: boolean
+          is_favorite?: boolean
+          mode?: string
+          model?: string
+          project_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chats_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      custom_modes: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          instructions: string
+          is_enabled: boolean
+          name: string
+          permissions: Json
+          preferred_model: string
+          project_types: Json
+          tools: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          instructions?: string
+          is_enabled?: boolean
+          name: string
+          permissions?: Json
+          preferred_model?: string
+          project_types?: Json
+          tools?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          instructions?: string
+          is_enabled?: boolean
+          name?: string
+          permissions?: Json
+          preferred_model?: string
+          project_types?: Json
+          tools?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          attachments: Json
+          chat_id: string
+          content: string
+          created_at: string
+          id: string
+          model: string | null
+          parts: Json
+          role: string
+          user_id: string
+        }
+        Insert: {
+          attachments?: Json
+          chat_id: string
+          content?: string
+          created_at?: string
+          id?: string
+          model?: string | null
+          parts?: Json
+          role: string
+          user_id: string
+        }
+        Update: {
+          attachments?: Json
+          chat_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          model?: string | null
+          parts?: Json
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      project_files: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_dir: boolean
+          language: string | null
+          path: string
+          project_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_dir?: boolean
+          language?: string | null
+          path: string
+          project_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_dir?: boolean
+          language?: string | null
+          path?: string
+          project_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_files_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          created_at: string
+          id: string
+          instructions: string | null
+          name: string
+          project_type: string
+          root_path: string | null
+          settings: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          instructions?: string | null
+          name: string
+          project_type?: string
+          root_path?: string | null
+          settings?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          instructions?: string | null
+          name?: string
+          project_type?: string
+          root_path?: string | null
+          settings?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          created_at: string
+          settings: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          settings?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          settings?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
