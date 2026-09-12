@@ -202,7 +202,7 @@ export const DEV_MODES: DevMode[] = [
 export const MODE_GROUPS = ["Core", "Web", "Games", "Roblox", "Languages", "Analysis", "Infrastructure", "Creative"];
 
 export function getMode(id: string | null | undefined): DevMode {
-  return DEV_MODES.find((m) => m.id === id) ?? DEV_MODES[0];
+  return DEV_MODES.find((m) => m.id === id) ?? DEV_MODES[0]!;
 }
 
 /** Project-type detection from a file listing. */
