@@ -65,6 +65,66 @@ export type Database = {
           },
         ]
       }
+      agent_tasks: {
+        Row: {
+          chat_id: string | null
+          created_at: string
+          goal: string
+          id: string
+          iterations: number
+          mode: string
+          project_id: string | null
+          status: string
+          summary: string | null
+          tier: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chat_id?: string | null
+          created_at?: string
+          goal: string
+          id?: string
+          iterations?: number
+          mode?: string
+          project_id?: string | null
+          status?: string
+          summary?: string | null
+          tier?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chat_id?: string | null
+          created_at?: string
+          goal?: string
+          id?: string
+          iterations?: number
+          mode?: string
+          project_id?: string | null
+          status?: string
+          summary?: string | null
+          tier?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_tasks_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chats: {
         Row: {
           agent_mode: string
@@ -159,6 +219,110 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      custom_tools: {
+        Row: {
+          ai_invokable: boolean
+          command: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          permissions: Json
+          user_id: string
+        }
+        Insert: {
+          ai_invokable?: boolean
+          command: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          permissions?: Json
+          user_id: string
+        }
+        Update: {
+          ai_invokable?: boolean
+          command?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          permissions?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      installed_extensions: {
+        Row: {
+          created_at: string
+          extension_id: string
+          id: string
+          is_enabled: boolean
+          settings: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          extension_id: string
+          id?: string
+          is_enabled?: boolean
+          settings?: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          extension_id?: string
+          id?: string
+          is_enabled?: boolean
+          settings?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      integrations: {
+        Row: {
+          config: Json
+          created_at: string
+          id: string
+          is_enabled: boolean
+          kind: string
+          name: string
+          permissions: Json
+          project_id: string | null
+          user_id: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          kind: string
+          name: string
+          permissions?: Json
+          project_id?: string | null
+          user_id: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          kind?: string
+          name?: string
+          permissions?: Json
+          project_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integrations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {
@@ -310,6 +474,41 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      snapshots: {
+        Row: {
+          created_at: string
+          files: Json
+          id: string
+          label: string
+          project_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          files?: Json
+          id?: string
+          label: string
+          project_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          files?: Json
+          id?: string
+          label?: string
+          project_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "snapshots_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_settings: {
         Row: {
