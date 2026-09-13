@@ -15,7 +15,10 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DownloadRouteImport } from './routes/download'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as ApiAgentRouteImport } from './routes/api/agent'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as ApiImageRouteImport } from './routes/api/image'
+import { Route as ApiResearchRouteImport } from './routes/api/research'
 import { Route as AuthenticatedWorkspaceProjectIdRouteImport } from './routes/_authenticated/workspace.$projectId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -47,9 +50,24 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiAgentRoute = ApiAgentRouteImport.update({
+  id: '/api/agent',
+  path: '/api/agent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiImageRoute = ApiImageRouteImport.update({
+  id: '/api/image',
+  path: '/api/image',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiResearchRoute = ApiResearchRouteImport.update({
+  id: '/api/research',
+  path: '/api/research',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedWorkspaceProjectIdRoute =
@@ -65,7 +83,10 @@ export interface FileRoutesByFullPath {
   '/download': typeof DownloadRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/api/agent': typeof ApiAgentRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/image': typeof ApiImageRoute
+  '/api/research': typeof ApiResearchRoute
   '/workspace/$projectId': typeof AuthenticatedWorkspaceProjectIdRoute
 }
 export interface FileRoutesByTo {
@@ -74,7 +95,10 @@ export interface FileRoutesByTo {
   '/download': typeof DownloadRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/api/agent': typeof ApiAgentRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/image': typeof ApiImageRoute
+  '/api/research': typeof ApiResearchRoute
   '/workspace/$projectId': typeof AuthenticatedWorkspaceProjectIdRoute
 }
 export interface FileRoutesById {
@@ -85,7 +109,10 @@ export interface FileRoutesById {
   '/download': typeof DownloadRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/api/agent': typeof ApiAgentRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/image': typeof ApiImageRoute
+  '/api/research': typeof ApiResearchRoute
   '/_authenticated/workspace/$projectId': typeof AuthenticatedWorkspaceProjectIdRoute
 }
 export interface FileRouteTypes {
@@ -96,7 +123,10 @@ export interface FileRouteTypes {
     | '/download'
     | '/dashboard'
     | '/settings'
+    | '/api/agent'
     | '/api/chat'
+    | '/api/image'
+    | '/api/research'
     | '/workspace/$projectId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -105,7 +135,10 @@ export interface FileRouteTypes {
     | '/download'
     | '/dashboard'
     | '/settings'
+    | '/api/agent'
     | '/api/chat'
+    | '/api/image'
+    | '/api/research'
     | '/workspace/$projectId'
   id:
     | '__root__'
@@ -115,7 +148,10 @@ export interface FileRouteTypes {
     | '/download'
     | '/_authenticated/dashboard'
     | '/_authenticated/settings'
+    | '/api/agent'
     | '/api/chat'
+    | '/api/image'
+    | '/api/research'
     | '/_authenticated/workspace/$projectId'
   fileRoutesById: FileRoutesById
 }
@@ -124,7 +160,10 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   DownloadRoute: typeof DownloadRoute
+  ApiAgentRoute: typeof ApiAgentRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiImageRoute: typeof ApiImageRoute
+  ApiResearchRoute: typeof ApiResearchRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -171,11 +210,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/agent': {
+      id: '/api/agent'
+      path: '/api/agent'
+      fullPath: '/api/agent'
+      preLoaderRoute: typeof ApiAgentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/chat': {
       id: '/api/chat'
       path: '/api/chat'
       fullPath: '/api/chat'
       preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/image': {
+      id: '/api/image'
+      path: '/api/image'
+      fullPath: '/api/image'
+      preLoaderRoute: typeof ApiImageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/research': {
+      id: '/api/research'
+      path: '/api/research'
+      fullPath: '/api/research'
+      preLoaderRoute: typeof ApiResearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/workspace/$projectId': {
@@ -208,7 +268,10 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   DownloadRoute: DownloadRoute,
+  ApiAgentRoute: ApiAgentRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiImageRoute: ApiImageRoute,
+  ApiResearchRoute: ApiResearchRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
