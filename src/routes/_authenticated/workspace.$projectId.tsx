@@ -53,7 +53,7 @@ type SideView = "explorer" | "chats" | "search" | "modes" | "git" | "extensions"
 
 export const Route = createFileRoute("/_authenticated/workspace/$projectId")({
   validateSearch: (search: Record<string, unknown>) => ({
-    chat: typeof search.chat === "string" ? search.chat : undefined,
+    chat: typeof search['chat'] === "string" ? (search['chat'] as string) : undefined,
   }),
   component: Workspace,
 });
@@ -207,8 +207,8 @@ function Workspace() {
           ))}
         </nav>
 
-        <ResizablePanelGroup direction="horizontal" className="min-h-0 flex-1">
-          <ResizablePanel defaultSize={18} minSize={12} className="bg-sidebar">
+        <ResizablePanelGroup orientation="horizontal" className="min-h-0 flex-1">
+          <ResizablePanel defaultSize="18" minSize="12" className="bg-sidebar">
             {side === "explorer" && (
               <Explorer
                 files={files.data ?? []}
@@ -409,9 +409,9 @@ function Workspace() {
 
           <ResizableHandle />
 
-          <ResizablePanel defaultSize={showAgent ? 56 : 82} minSize={30}>
-            <ResizablePanelGroup direction="vertical">
-              <ResizablePanel defaultSize={showTerminal ? 70 : 100} minSize={25}>
+          <ResizablePanel defaultSize={showAgent ? "56" : "82"} minSize="30">
+            <ResizablePanelGroup orientation="vertical">
+              <ResizablePanel defaultSize={showTerminal ? "70" : "100"} minSize="25">
                 {centre === "chat" && activeChat && chatBody()}
                 {centre === "code" && (
                   <EditorPane
@@ -427,10 +427,10 @@ function Workspace() {
                   />
                 )}
                 {centre === "split" && (
-                  <ResizablePanelGroup direction="horizontal">
-                    <ResizablePanel defaultSize={45} minSize={25}>{chatBody()}</ResizablePanel>
+                  <ResizablePanelGroup orientation="horizontal">
+                    <ResizablePanel defaultSize="45" minSize="25">{chatBody()}</ResizablePanel>
                     <ResizableHandle />
-                    <ResizablePanel defaultSize={55} minSize={25}>
+                    <ResizablePanel defaultSize="55" minSize="25">
                       <EditorPane
                         tabs={tabs}
                         activeId={activeTab}
@@ -449,7 +449,7 @@ function Workspace() {
               {showTerminal && (
                 <>
                   <ResizableHandle />
-                  <ResizablePanel defaultSize={30} minSize={12}>
+                  <ResizablePanel defaultSize="30" minSize="12">
                     <TerminalPanel
                       files={files.data ?? []}
                       bridgeConnected={false}
@@ -474,7 +474,7 @@ function Workspace() {
           {showAgent && (
             <>
               <ResizableHandle />
-              <ResizablePanel defaultSize={24} minSize={14}>
+              <ResizablePanel defaultSize="24" minSize="14">
                 <AgentPanel events={events.data ?? []} changedFiles={changedFiles} output={output} />
               </ResizablePanel>
             </>
