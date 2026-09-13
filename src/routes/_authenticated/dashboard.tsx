@@ -62,13 +62,13 @@ function Dashboard() {
     setBusy(true);
     try {
       const project = await createProject({ name: name.trim(), project_type: type });
-      for (const file of TEMPLATES[type] ?? TEMPLATES.empty!) {
+      for (const file of TEMPLATES[type] ?? TEMPLATES['empty']!) {
         await writeFile(project.id, file.path, file.content);
       }
       await queryClient.invalidateQueries({ queryKey: ["projects"] });
       setOpen(false);
       setName("");
-      navigate({ to: "/workspace/$projectId", params: { projectId: project.id } });
+      navigate({ to: "/workspace/$projectId", params: { projectId: project.id }, search: { chat: undefined } });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not create the project");
     } finally {
@@ -146,6 +146,7 @@ function Dashboard() {
                   key={p.id}
                   to="/workspace/$projectId"
                   params={{ projectId: p.id }}
+                  search={{ chat: undefined }}
                   className="bg-surface p-4 transition-colors hover:bg-elevated"
                 >
                   <p className="text-sm font-semibold">{p.name}</p>
