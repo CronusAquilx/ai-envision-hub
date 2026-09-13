@@ -89,7 +89,7 @@ export async function createProject(input: { name: string; project_type?: string
 }
 
 export async function updateProject(id: string, patch: Partial<Project>) {
-  const { error } = await supabase.from("projects").update(patch).eq("id", id);
+  const { error } = await supabase.from("projects").update(patch as never).eq("id", id);
   if (error) throw error;
 }
 
@@ -204,7 +204,7 @@ export async function duplicateChat(id: string) {
   const user_id = await uid();
   if (msgs.length) {
     const { error } = await supabase.from("messages").insert(
-      msgs.map((m) => ({ user_id, chat_id: copy.id, role: m.role, content: m.content, parts: m.parts, attachments: m.attachments, model: m.model })),
+      msgs.map((m) => ({ user_id, chat_id: copy.id, role: m.role, content: m.content, parts: m.parts as never, attachments: m.attachments as never, model: m.model })),
     );
     if (error) throw error;
   }
@@ -237,8 +237,8 @@ export async function saveMessage(input: {
     chat_id: input.chatId,
     role: input.role,
     content: input.content,
-    parts: input.parts ?? [],
-    attachments: input.attachments ?? [],
+    parts: (input.parts ?? []) as never,
+    attachments: (input.attachments ?? []) as never,
     model: input.model ?? null,
   });
   if (error) throw error;
@@ -275,7 +275,7 @@ export async function logAgentEvent(input: {
       kind: input.kind,
       label: input.label,
       status: input.status ?? "done",
-      detail: input.detail ?? {},
+      detail: (input.detail ?? {}) as never,
     })
     .select()
     .single();
@@ -311,7 +311,7 @@ export async function getSettings() {
 
 export async function saveSettings(settings: Record<string, unknown>) {
   const user_id = await uid();
-  const { error } = await supabase.from("user_settings").upsert({ user_id, settings }, { onConflict: "user_id" });
+  const { error } = await supabase.from("user_settings").upsert({ user_id, settings: settings as never }, { onConflict: "user_id" });
   if (error) throw error;
 }
 
@@ -345,9 +345,9 @@ export async function createCustomMode(input: Partial<CustomMode> & { name: stri
       description: input.description ?? null,
       instructions: input.instructions ?? "",
       preferred_model: input.preferred_model ?? "balanced",
-      tools: input.tools ?? [],
-      permissions: input.permissions ?? {},
-      project_types: input.project_types ?? [],
+      tools: (input.tools ?? []) as never,
+      permissions: (input.permissions ?? {}) as never,
+      project_types: (input.project_types ?? []) as never,
     })
     .select()
     .single();
@@ -356,7 +356,7 @@ export async function createCustomMode(input: Partial<CustomMode> & { name: stri
 }
 
 export async function updateCustomMode(id: string, patch: Partial<CustomMode>) {
-  const { error } = await supabase.from("custom_modes").update(patch).eq("id", id);
+  const { error } = await supabase.from("custom_modes").update(patch as never).eq("id", id);
   if (error) throw error;
 }
 
