@@ -69,7 +69,7 @@ export function AgentRunner({
         await refresh();
       },
       log: async (event) => {
-        await logAgentEvent({ chatId, projectId, kind: event.kind, label: event.label, status: event.status, detail: event.detail })
+        await logAgentEvent({ chatId, projectId, kind: event.kind, label: event.label, status: event.status ?? "done", detail: event.detail ?? {} })
           .then(onEvent)
           .catch(() => {});
         onOutput(`${event.label}`);
