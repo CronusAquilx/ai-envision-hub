@@ -226,7 +226,9 @@ export function ExtensionsPanel() {
           return (
             <li key={ext.id} className="p-2">
               <div className="flex items-start gap-2">
-                <span className="text-base leading-none">{ext.icon}</span>
+                <span className="mono-xs mt-0.5 flex size-5 shrink-0 items-center justify-center rounded border border-sidebar-border bg-surface uppercase text-muted-foreground">
+                  {ext.category.slice(0, 1)}
+                </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-xs font-medium">{ext.name}</p>
                   <p className="mono-xs text-muted-foreground">
