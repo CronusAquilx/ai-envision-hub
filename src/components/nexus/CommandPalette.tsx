@@ -54,7 +54,7 @@ export function CommandPalette({
   }, [commands]);
 
   return (
-    <CommandDialog open={open} onOpenChange={setOpen} title={quick ? "Quick open" : "Command palette"}>
+    <CommandDialog open={open} onOpenChange={setOpen}>
       <CommandInput placeholder={quick ? "Search files by name…" : "Type a command…"} />
       <CommandList>
         <CommandEmpty>Nothing found.</CommandEmpty>
