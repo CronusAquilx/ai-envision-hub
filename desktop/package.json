@@ -1,0 +1,31 @@
+{
+  "name": "nexus-ai-desktop",
+  "productName": "NEXUS AI",
+  "version": "1.0.0",
+  "description": "NEXUS AI desktop shell with a local agent bridge: native filesystem, terminals, Git and Roblox Studio access.",
+  "main": "src/main.cjs",
+  "author": "NEXUS AI",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "bridge": "node src/bridge.cjs",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win nsis",
+    "dist:mac": "electron-builder --mac dmg",
+    "dist:linux": "electron-builder --linux AppImage deb"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "ai.nexus.desktop",
+    "productName": "NEXUS AI",
+    "files": ["src/**/*", "package.json"],
+    "win": { "target": ["nsis"], "artifactName": "NEXUS-AI-Setup-${version}.${ext}" },
+    "mac": { "target": ["dmg"], "category": "public.app-category.developer-tools" },
+    "linux": { "target": ["AppImage", "deb"], "category": "Development" },
+    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true }
+  }
+}
