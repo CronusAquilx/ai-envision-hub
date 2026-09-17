@@ -77,6 +77,7 @@ function Workspace() {
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [centre, setCentre] = useState<"chat" | "code" | "split">("split");
   const [showTerminal, setShowTerminal] = useState(true);
+  const [showSide, setShowSide] = useState(true);
   const [showAgent, setShowAgent] = useState(true);
   const [output, setOutput] = useState<string[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(chatParam ?? null);
@@ -199,9 +200,7 @@ function Workspace() {
       const key = e.key.toLowerCase();
       if (key === "b") {
         e.preventDefault();
-        setSide((s) => s);
-        setShowAgent((v) => v);
-        setCentre((c) => (c === "code" ? "split" : "code"));
+        setShowSide((v) => !v);
       } else if (key === "j") {
         e.preventDefault();
         setShowTerminal((v) => !v);
