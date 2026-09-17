@@ -29,12 +29,20 @@ import { EditorPane, type OpenTab } from "@/components/nexus/EditorPane";
 import { ChatPanel } from "@/components/nexus/ChatPanel";
 import { AgentPanel } from "@/components/nexus/AgentPanel";
 import { TerminalPanel } from "@/components/nexus/TerminalPanel";
+import { AgentRunner } from "@/components/nexus/AgentRunner";
+import { DiffReview } from "@/components/nexus/DiffReview";
+import { CommandPalette, type PaletteCommand } from "@/components/nexus/CommandPalette";
+import { ExtensionsPanel, GitPanel, RobloxPanel } from "@/components/nexus/BridgePanels";
+import { useBridge } from "@/hooks/useBridge";
+import { readPermissions } from "@/lib/nexus/permissions";
+import type { PendingChange } from "@/lib/nexus/diff";
 import { detectProjectType } from "@/lib/nexus/modes";
 import {
   createChat,
   deleteChat,
   deleteFile,
   getProject,
+  getSettings,
   listAgentEvents,
   listChats,
   listCustomModes,
@@ -69,11 +77,18 @@ function Workspace() {
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [centre, setCentre] = useState<"chat" | "code" | "split">("split");
   const [showTerminal, setShowTerminal] = useState(true);
+  const [showSide, setShowSide] = useState(true);
   const [showAgent, setShowAgent] = useState(true);
   const [output, setOutput] = useState<string[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(chatParam ?? null);
   const [term, setTerm] = useState("");
   const [instructions, setInstructions] = useState("");
+  const [pending, setPending] = useState<PendingChange[]>([]);
+  const [rightTab, setRightTab] = useState<"agent" | "activity" | "changes">("agent");
+
+  const bridge = useBridge();
+  const settings = useQuery({ queryKey: ["settings"], queryFn: getSettings });
+  const permissions = useMemo(() => readPermissions(settings.data ?? undefined), [settings.data]);
 
   const project = useQuery({ queryKey: ["project", projectId], queryFn: () => getProject(projectId) });
   const files = useQuery({ queryKey: ["files", projectId], queryFn: () => listFiles(projectId) });
@@ -162,6 +177,42 @@ function Workspace() {
     { id: "extensions", icon: Puzzle, label: "Extensions" },
   ];
 
+  const commands: PaletteCommand[] = [
+    { id: "new-chat", title: "New chat", group: "Chat", run: () => void createChat({ projectId }).then((c) => { setActiveChatId(c.id); void queryClient.invalidateQueries({ queryKey: ["chats", projectId] }); }) },
+    { id: "agent", title: "Start agent", group: "Agent", run: () => { setShowAgent(true); setRightTab("agent"); } },
+    { id: "plan", title: "Create a plan", group: "Agent", run: () => { setShowAgent(true); setRightTab("agent"); } },
+    { id: "changes", title: "Review all changes", group: "Agent", run: () => { setShowAgent(true); setRightTab("changes"); } },
+    { id: "terminal", title: "Open terminal", group: "View", shortcut: "Ctrl+J", run: () => setShowTerminal(true) },
+    { id: "explorer", title: "Show explorer", group: "View", shortcut: "Ctrl+B", run: () => setSide("explorer") },
+    { id: "search", title: "Search files", group: "View", shortcut: "Ctrl+Shift+F", run: () => setSide("search") },
+    { id: "git", title: "Git: status and commit", group: "Git", run: () => setSide("git") },
+    { id: "roblox", title: "Connect Roblox Studio", group: "Roblox", run: () => setSide("roblox") },
+    { id: "ext", title: "Install extension", group: "Extensions", run: () => setSide("extensions") },
+    { id: "settings", title: "Open settings", group: "General", run: () => void navigate({ to: "/settings" }) },
+    { id: "help", title: "Help centre", group: "General", run: () => void navigate({ to: "/help" }) },
+    { id: "dashboard", title: "Open a project", group: "General", run: () => void navigate({ to: "/dashboard" }) },
+  ];
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const mod = e.metaKey || e.ctrlKey;
+      if (!mod) return;
+      const key = e.key.toLowerCase();
+      if (key === "b") {
+        e.preventDefault();
+        setShowSide((v) => !v);
+      } else if (key === "j") {
+        e.preventDefault();
+        setShowTerminal((v) => !v);
+      } else if (e.shiftKey && key === "f") {
+        e.preventDefault();
+        setSide("search");
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-background">
       {/* title bar */}
@@ -208,7 +259,7 @@ function Workspace() {
         </nav>
 
         <ResizablePanelGroup orientation="horizontal" className="min-h-0 flex-1">
-          <ResizablePanel defaultSize="18" minSize="12" className="bg-sidebar">
+          <ResizablePanel defaultSize="18" minSize="12" className={`bg-sidebar ${showSide ? "" : "hidden"}`}>
             {side === "explorer" && (
               <Explorer
                 files={files.data ?? []}
@@ -369,42 +420,18 @@ function Workspace() {
             )}
 
             {side === "git" && (
-              <div className="p-3 text-xs leading-relaxed text-muted-foreground">
-                <p className="mono-xs uppercase tracking-widest">Git</p>
-                <p className="mt-3">
-                  Git works against a real repository, which lives on your machine. Connect the desktop app's local
-                  bridge to see status, diffs, branches and history here, with AI-written commit messages.
-                </p>
-                <Link to="/download" className="mono-xs mt-3 block text-accent hover:underline">Get the desktop app →</Link>
-              </div>
+              <GitPanel connected={bridge.connected} rootPath={project.data?.root_path ?? null} tier={activeChat?.model ?? "balanced"} />
             )}
 
             {side === "roblox" && (
-              <div className="p-3 text-xs leading-relaxed text-muted-foreground">
-                <p className="mono-xs uppercase tracking-widest">Roblox Studio</p>
-                <p className="mt-2 flex items-center gap-2"><span className="text-destructive">●</span> Not connected</p>
-                <p className="mt-3">
-                  Three connection methods are supported: Rojo, the Studio plugin, and an MCP-style local bridge. All
-                  three need the desktop app, which hosts the bridge.
-                </p>
-                <ul className="mono-xs mt-3 space-y-1">
-                  <li>Rojo project: {detected.type === "roblox" ? "detected" : "not detected"}</li>
-                  <li>Plugin: not installed</li>
-                  <li>Bridge: offline</li>
-                </ul>
-                <Link to="/settings" className="mono-xs mt-3 block text-accent hover:underline">Roblox settings →</Link>
-              </div>
+              <RobloxPanel
+                health={bridge.health}
+                rootPath={project.data?.root_path ?? null}
+                detectedRoblox={detected.type === "roblox"}
+              />
             )}
 
-            {side === "extensions" && (
-              <div className="p-3 text-xs leading-relaxed text-muted-foreground">
-                <p className="mono-xs uppercase tracking-widest">Extensions</p>
-                <p className="mt-3">
-                  The extension host and marketplace land in stage 4. Extensions register commands, panels, agent tools,
-                  project detectors and integrations through the tool layer.
-                </p>
-              </div>
-            )}
+            {side === "extensions" && <ExtensionsPanel />}
           </ResizablePanel>
 
           <ResizableHandle />
@@ -452,7 +479,7 @@ function Workspace() {
                   <ResizablePanel defaultSize="30" minSize="12">
                     <TerminalPanel
                       files={files.data ?? []}
-                      bridgeConnected={false}
+                      bridgeConnected={bridge.connected}
                       onWriteFile={async (path, content, isDir) => {
                         await writeFile(projectId, path, content, { is_dir: isDir ?? false });
                         await refreshFiles();
@@ -474,8 +501,68 @@ function Workspace() {
           {showAgent && (
             <>
               <ResizableHandle />
-              <ResizablePanel defaultSize="24" minSize="14">
-                <AgentPanel events={events.data ?? []} changedFiles={changedFiles} output={output} />
+              <ResizablePanel defaultSize="26" minSize="14" className="bg-sidebar">
+                <div className="flex h-full min-h-0 flex-col">
+                  <div className="flex items-center gap-px border-b border-sidebar-border">
+                    {(["agent", "activity", "changes"] as const).map((t) => (
+                      <button
+                        key={t}
+                        onClick={() => setRightTab(t)}
+                        className={`mono-xs px-2.5 py-2 uppercase tracking-wider transition-colors ${
+                          rightTab === t ? "border-b border-primary text-foreground" : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {t}
+                        {t === "changes" && pending.length > 0 ? ` (${pending.length})` : ""}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="min-h-0 flex-1 overflow-hidden">
+                    {rightTab === "agent" && (
+                      <AgentRunner
+                        projectId={projectId}
+                        chatId={activeChatId}
+                        rootPath={project.data?.root_path ?? null}
+                        bridgeConnected={bridge.connected}
+                        permissions={permissions}
+                        mode={activeChat?.mode ?? "general"}
+                        tier={activeChat?.model ?? "balanced"}
+                        files={files.data ?? []}
+                        refresh={async () => {
+                          await refreshFiles();
+                        }}
+                        onEvent={() => void queryClient.invalidateQueries({ queryKey: ["events", activeChatId] })}
+                        onChange={(change) => {
+                          setPending((prev) => [...prev.filter((c) => c.path !== change.path), change]);
+                          setRightTab("changes");
+                        }}
+                        onOutput={(line) => setOutput((o) => [...o.slice(-200), line])}
+                      />
+                    )}
+                    {rightTab === "activity" && (
+                      <AgentPanel events={events.data ?? []} changedFiles={changedFiles} output={output} />
+                    )}
+                    {rightTab === "changes" && (
+                      <div className="h-full overflow-y-auto p-2 scrollbar-thin">
+                        <DiffReview
+                          changes={pending}
+                          onAccept={(change) => setPending((prev) => prev.filter((c) => c.id !== change.id))}
+                          onReject={(change) => {
+                            void writeFile(projectId, change.path, change.before)
+                              .then(refreshFiles)
+                              .then(() => toast.success(`Reverted ${change.path}`))
+                              .catch(() => toast.error("Could not revert that file"));
+                            setPending((prev) => prev.filter((c) => c.id !== change.id));
+                          }}
+                          onOpen={(path) => {
+                            const file = files.data?.find((f) => f.path === path);
+                            if (file) openFile(file);
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
               </ResizablePanel>
             </>
           )}
@@ -486,8 +573,20 @@ function Workspace() {
         <span className="mono-xs text-muted-foreground">{detected.label}</span>
         <span className="mono-xs text-muted-foreground">{files.data?.length ?? 0} files</span>
         <span className="mono-xs text-muted-foreground">{activeChat ? `${activeChat.mode} · ${activeChat.model}` : "no chat"}</span>
-        <span className="mono-xs ml-auto text-muted-foreground">AI online · bridge offline</span>
+        <span className="mono-xs text-muted-foreground">{permissions.autonomy} autonomy</span>
+        <span className="mono-xs ml-auto text-muted-foreground">
+          AI online · {bridge.connected ? `bridge connected (${bridge.health?.platform})` : "bridge offline"}
+        </span>
       </div>
+
+      <CommandPalette
+        commands={commands}
+        files={(files.data ?? []).map((f) => ({ id: f.id, path: f.path, is_dir: f.is_dir }))}
+        onOpenFile={(id) => {
+          const file = files.data?.find((f) => f.id === id);
+          if (file) openFile(file);
+        }}
+      />
     </div>
   );
 
