@@ -259,7 +259,7 @@ function Workspace() {
         </nav>
 
         <ResizablePanelGroup orientation="horizontal" className="min-h-0 flex-1">
-          <ResizablePanel defaultSize="18" minSize="12" className="bg-sidebar">
+          <ResizablePanel defaultSize="18" minSize="12" className={`bg-sidebar ${showSide ? "" : "hidden"}`}>
             {side === "explorer" && (
               <Explorer
                 files={files.data ?? []}
