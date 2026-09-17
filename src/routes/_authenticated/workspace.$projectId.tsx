@@ -176,6 +176,44 @@ function Workspace() {
     { id: "extensions", icon: Puzzle, label: "Extensions" },
   ];
 
+  const commands: PaletteCommand[] = [
+    { id: "new-chat", title: "New chat", group: "Chat", run: () => void createChat({ projectId }).then((c) => { setActiveChatId(c.id); void queryClient.invalidateQueries({ queryKey: ["chats", projectId] }); }) },
+    { id: "agent", title: "Start agent", group: "Agent", run: () => { setShowAgent(true); setRightTab("agent"); } },
+    { id: "plan", title: "Create a plan", group: "Agent", run: () => { setShowAgent(true); setRightTab("agent"); } },
+    { id: "changes", title: "Review all changes", group: "Agent", run: () => { setShowAgent(true); setRightTab("changes"); } },
+    { id: "terminal", title: "Open terminal", group: "View", shortcut: "Ctrl+J", run: () => setShowTerminal(true) },
+    { id: "explorer", title: "Show explorer", group: "View", shortcut: "Ctrl+B", run: () => setSide("explorer") },
+    { id: "search", title: "Search files", group: "View", shortcut: "Ctrl+Shift+F", run: () => setSide("search") },
+    { id: "git", title: "Git: status and commit", group: "Git", run: () => setSide("git") },
+    { id: "roblox", title: "Connect Roblox Studio", group: "Roblox", run: () => setSide("roblox") },
+    { id: "ext", title: "Install extension", group: "Extensions", run: () => setSide("extensions") },
+    { id: "settings", title: "Open settings", group: "General", run: () => void navigate({ to: "/settings" }) },
+    { id: "help", title: "Help centre", group: "General", run: () => void navigate({ to: "/help" }) },
+    { id: "dashboard", title: "Open a project", group: "General", run: () => void navigate({ to: "/dashboard" }) },
+  ];
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const mod = e.metaKey || e.ctrlKey;
+      if (!mod) return;
+      const key = e.key.toLowerCase();
+      if (key === "b") {
+        e.preventDefault();
+        setSide((s) => s);
+        setShowAgent((v) => v);
+        setCentre((c) => (c === "code" ? "split" : "code"));
+      } else if (key === "j") {
+        e.preventDefault();
+        setShowTerminal((v) => !v);
+      } else if (e.shiftKey && key === "f") {
+        e.preventDefault();
+        setSide("search");
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-background">
       {/* title bar */}
