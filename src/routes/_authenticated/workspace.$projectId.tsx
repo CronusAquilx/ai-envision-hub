@@ -442,7 +442,7 @@ function Workspace() {
                   <ResizablePanel defaultSize="30" minSize="12">
                     <TerminalPanel
                       files={files.data ?? []}
-                      bridgeConnected={false}
+                      bridgeConnected={bridge.connected}
                       onWriteFile={async (path, content, isDir) => {
                         await writeFile(projectId, path, content, { is_dir: isDir ?? false });
                         await refreshFiles();
@@ -464,8 +464,68 @@ function Workspace() {
           {showAgent && (
             <>
               <ResizableHandle />
-              <ResizablePanel defaultSize="24" minSize="14">
-                <AgentPanel events={events.data ?? []} changedFiles={changedFiles} output={output} />
+              <ResizablePanel defaultSize="26" minSize="14" className="bg-sidebar">
+                <div className="flex h-full min-h-0 flex-col">
+                  <div className="flex items-center gap-px border-b border-sidebar-border">
+                    {(["agent", "activity", "changes"] as const).map((t) => (
+                      <button
+                        key={t}
+                        onClick={() => setRightTab(t)}
+                        className={`mono-xs px-2.5 py-2 uppercase tracking-wider transition-colors ${
+                          rightTab === t ? "border-b border-primary text-foreground" : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {t}
+                        {t === "changes" && pending.length > 0 ? ` (${pending.length})` : ""}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="min-h-0 flex-1 overflow-hidden">
+                    {rightTab === "agent" && (
+                      <AgentRunner
+                        projectId={projectId}
+                        chatId={activeChatId}
+                        rootPath={project.data?.root_path ?? null}
+                        bridgeConnected={bridge.connected}
+                        permissions={permissions}
+                        mode={activeChat?.mode ?? "general"}
+                        tier={activeChat?.model ?? "balanced"}
+                        files={files.data ?? []}
+                        refresh={async () => {
+                          await refreshFiles();
+                        }}
+                        onEvent={() => void queryClient.invalidateQueries({ queryKey: ["events", activeChatId] })}
+                        onChange={(change) => {
+                          setPending((prev) => [...prev.filter((c) => c.path !== change.path), change]);
+                          setRightTab("changes");
+                        }}
+                        onOutput={(line) => setOutput((o) => [...o.slice(-200), line])}
+                      />
+                    )}
+                    {rightTab === "activity" && (
+                      <AgentPanel events={events.data ?? []} changedFiles={changedFiles} output={output} />
+                    )}
+                    {rightTab === "changes" && (
+                      <div className="h-full overflow-y-auto p-2 scrollbar-thin">
+                        <DiffReview
+                          changes={pending}
+                          onAccept={(change) => setPending((prev) => prev.filter((c) => c.id !== change.id))}
+                          onReject={(change) => {
+                            void writeFile(projectId, change.path, change.before)
+                              .then(refreshFiles)
+                              .then(() => toast.success(`Reverted ${change.path}`))
+                              .catch(() => toast.error("Could not revert that file"));
+                            setPending((prev) => prev.filter((c) => c.id !== change.id));
+                          }}
+                          onOpen={(path) => {
+                            const file = files.data?.find((f) => f.path === path);
+                            if (file) openFile(file);
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
               </ResizablePanel>
             </>
           )}
@@ -476,8 +536,20 @@ function Workspace() {
         <span className="mono-xs text-muted-foreground">{detected.label}</span>
         <span className="mono-xs text-muted-foreground">{files.data?.length ?? 0} files</span>
         <span className="mono-xs text-muted-foreground">{activeChat ? `${activeChat.mode} · ${activeChat.model}` : "no chat"}</span>
-        <span className="mono-xs ml-auto text-muted-foreground">AI online · bridge offline</span>
+        <span className="mono-xs text-muted-foreground">{permissions.autonomy} autonomy</span>
+        <span className="mono-xs ml-auto text-muted-foreground">
+          AI online · {bridge.connected ? `bridge connected (${bridge.health?.platform})` : "bridge offline"}
+        </span>
       </div>
+
+      <CommandPalette
+        commands={commands}
+        files={(files.data ?? []).map((f) => ({ id: f.id, path: f.path, is_dir: f.is_dir }))}
+        onOpenFile={(id) => {
+          const file = files.data?.find((f) => f.id === id);
+          if (file) openFile(file);
+        }}
+      />
     </div>
   );
 
