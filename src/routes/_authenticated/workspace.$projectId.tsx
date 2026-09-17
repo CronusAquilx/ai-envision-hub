@@ -29,12 +29,20 @@ import { EditorPane, type OpenTab } from "@/components/nexus/EditorPane";
 import { ChatPanel } from "@/components/nexus/ChatPanel";
 import { AgentPanel } from "@/components/nexus/AgentPanel";
 import { TerminalPanel } from "@/components/nexus/TerminalPanel";
+import { AgentRunner } from "@/components/nexus/AgentRunner";
+import { DiffReview } from "@/components/nexus/DiffReview";
+import { CommandPalette, type PaletteCommand } from "@/components/nexus/CommandPalette";
+import { ExtensionsPanel, GitPanel, RobloxPanel } from "@/components/nexus/BridgePanels";
+import { useBridge } from "@/hooks/useBridge";
+import { readPermissions } from "@/lib/nexus/permissions";
+import type { PendingChange } from "@/lib/nexus/diff";
 import { detectProjectType } from "@/lib/nexus/modes";
 import {
   createChat,
   deleteChat,
   deleteFile,
   getProject,
+  getSettings,
   listAgentEvents,
   listChats,
   listCustomModes,
@@ -74,6 +82,12 @@ function Workspace() {
   const [activeChatId, setActiveChatId] = useState<string | null>(chatParam ?? null);
   const [term, setTerm] = useState("");
   const [instructions, setInstructions] = useState("");
+  const [pending, setPending] = useState<PendingChange[]>([]);
+  const [rightTab, setRightTab] = useState<"agent" | "activity" | "changes">("agent");
+
+  const bridge = useBridge();
+  const settings = useQuery({ queryKey: ["settings"], queryFn: getSettings });
+  const permissions = useMemo(() => readPermissions(settings.data ?? undefined), [settings.data]);
 
   const project = useQuery({ queryKey: ["project", projectId], queryFn: () => getProject(projectId) });
   const files = useQuery({ queryKey: ["files", projectId], queryFn: () => listFiles(projectId) });
@@ -369,42 +383,18 @@ function Workspace() {
             )}
 
             {side === "git" && (
-              <div className="p-3 text-xs leading-relaxed text-muted-foreground">
-                <p className="mono-xs uppercase tracking-widest">Git</p>
-                <p className="mt-3">
-                  Git works against a real repository, which lives on your machine. Connect the desktop app's local
-                  bridge to see status, diffs, branches and history here, with AI-written commit messages.
-                </p>
-                <Link to="/download" className="mono-xs mt-3 block text-accent hover:underline">Get the desktop app →</Link>
-              </div>
+              <GitPanel connected={bridge.connected} rootPath={project.data?.root_path ?? null} tier={activeChat?.model ?? "balanced"} />
             )}
 
             {side === "roblox" && (
-              <div className="p-3 text-xs leading-relaxed text-muted-foreground">
-                <p className="mono-xs uppercase tracking-widest">Roblox Studio</p>
-                <p className="mt-2 flex items-center gap-2"><span className="text-destructive">●</span> Not connected</p>
-                <p className="mt-3">
-                  Three connection methods are supported: Rojo, the Studio plugin, and an MCP-style local bridge. All
-                  three need the desktop app, which hosts the bridge.
-                </p>
-                <ul className="mono-xs mt-3 space-y-1">
-                  <li>Rojo project: {detected.type === "roblox" ? "detected" : "not detected"}</li>
-                  <li>Plugin: not installed</li>
-                  <li>Bridge: offline</li>
-                </ul>
-                <Link to="/settings" className="mono-xs mt-3 block text-accent hover:underline">Roblox settings →</Link>
-              </div>
+              <RobloxPanel
+                health={bridge.health}
+                rootPath={project.data?.root_path ?? null}
+                detectedRoblox={detected.type === "roblox"}
+              />
             )}
 
-            {side === "extensions" && (
-              <div className="p-3 text-xs leading-relaxed text-muted-foreground">
-                <p className="mono-xs uppercase tracking-widest">Extensions</p>
-                <p className="mt-3">
-                  The extension host and marketplace land in stage 4. Extensions register commands, panels, agent tools,
-                  project detectors and integrations through the tool layer.
-                </p>
-              </div>
-            )}
+            {side === "extensions" && <ExtensionsPanel />}
           </ResizablePanel>
 
           <ResizableHandle />
